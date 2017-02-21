@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>reveal.js</title>
+
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/blood.css">
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h1>Async JS</h1>
+                    <ul>
+                        <li>Callback</li>
+                        <li>Promise</li>
+                        <li>async await</li>
+                    </ul>
+                </section>
+                <section>
+                    <pre><code data-trim data-noescape>
+                        function callback (err, value) {
+                          if ( err ) {
+                            return handleError(err)
+                          }
+
+                          console.log(value)
+                        }
+
+                        answerMyQuestionAsync('Whats the purpose of life?', callback)
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code data-trim data-noescape>
+                      function answerMyQuestionAsync (question, cb) {
+                        setTimeout(function() { // sum poor demonstration delay
+
+                          if ( Math.random() > .5 ) {
+                            return cb( new Error('Something went wrong') )
+                          }
+
+                          return cb( null, 42 )
+
+                         }, 500)
+
+                       }
+                    </code></pre>
+                </section>
+                <section>
+                    <h2>Vorteile:</h2>
+                    <ul>
+                        <li>Funktioniert in jedem Browser</li>
+                        <li>Benötigt keine zusätzliche Objekte wie z.B. Promise</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Nachteil: </h2>
+                    <h3>Callbackhell</h3>
+
+
+                    <pre><code data-trim data-noescape>
+                        answer('Whats the purpose of life?', function ( err, answer ) {
+                          if ( err ) return handleError(err)
+
+                          answer('What is 21 times 2?', function ( err, answer2 ) {
+                            if ( err ) return handleError(err)
+
+                             answer('What is 84 divided by 2?', function ( err, answer3 ) {
+                               if ( err ) return handleError(err)
+
+                               doSthWithAllAnswers([ answer, answer2, answer3 ])
+                             })
+                          })
+                        })
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code data-trim data-noescape>
+
+                        function answerStuff() {
+                          answer('Whats the purpose of life?', function ( err, answer ) {
+                            if ( err ) return handleError(err)
+
+                             answer2( [ answer ] )
+                          }
+                        }
+
+                        function answer2( answers ) {
+                          answer('What is 21 times 2?', function ( err, answer2 ) {
+                            if ( err ) return handleError(err)
+
+                            answers.push(answer2)
+                            answer3( answers )
+                          }
+                        }
+
+                        function answer3( answers ) {
+                          answer('What is 84 divided by 2?', function ( err, answer3 ) {
+                            if ( err ) return handleError(err)
+                            answers.push(answer3)
+                            doSthWithAllAnswers( answers )
+                          })
+                        }
+
+                        answerStuff()
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>z.b. async.js</h3>
+                    <pre><code data-trim data-noescape>
+                        async.series([
+                          callback => answer('Whats the purpose of life?', callback),
+                          callback => answer('What is 21 times 2?', callback),
+                          callback => answer('What is 84 divided by 2?', callback),
+                        ], function(err, answers) {
+                          if ( err ) return handleError(err)
+
+                          doSthWithAllAnswers(answers)
+                        })
+                    </code></pre>
+                    <span>http://caolan.github.io/async/</span>
+                </section>
+            </div>
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: 'plugin/markdown/marked.js' },
+                    { src: 'plugin/markdown/markdown.js' },
+                    { src: 'plugin/notes/notes.js', async: true },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
